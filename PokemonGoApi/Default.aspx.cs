@@ -11,6 +11,9 @@ using POGOProtos.Networking.Envelopes;
 using POGOProtos.Networking.Requests;
 using POGOProtos.Networking.Requests.Messages;
 using Google.Protobuf;
+using DankMemes.GPSOAuthSharp;
+using System.IdentityModel.Tokens.Jwt;
+using PokemonGoApi.Source;
 
 namespace PokemonGoApi
 {
@@ -18,47 +21,51 @@ namespace PokemonGoApi
 	{
 		protected void Page_Load(object sender, EventArgs e)
 		{
-			if (Session["accessToken"] != null)
+			if (Session["idToken"] != null)
 			{
+				Response.Write(Session["idToken"] + "<br />" + Session["idToken"].ToString().Length +"<br />");
+				var googleClient = new GPSOAuthClient("cuapb.5115.test", "5115test");
+				var masterLoginResponse = googleClient.PerformMasterLogin();
+				var oauthResponse = googleClient.PerformOAuth(masterLoginResponse["Token"], "audience:server:client_id:848232511240-7so421jotr2609rmqakceuu1luuq0ptb.apps.googleusercontent.com", "com.nianticlabs.pokemongo", "321187995bc7cdc2b5fc91b11a96e2baa8602c62");
+				Response.Write(oauthResponse["Auth"] + "<br />" + oauthResponse["Auth"].ToString().Length);
+
+				var testAuth = oauthResponse["Auth"];
+				var testAuth2 = Session["idToken"].ToString().Substring(0, 848);
+				var pwep = Session["accessToken"];
+				var pewp = masterLoginResponse["Token"];
+				var token = (GooglePlusAccessToken)Session["GooglePlusAccessToken"];
+
+				var tit = new JwtSecurityToken(Session["idToken"].ToString());
+				bool gah = Session["idToken"].ToString().Contains(tit.Payload["at_hash"].ToString());
+									
+				tit.Payload.Remove("at_hash");
+				tit.Header.Remove("typ");
+
+				var titty = tit.EncodedHeader + "." + tit.EncodedPayload + "." + tit.RawSignature;
+				var foop = new JwtSecurityToken(titty);
+
+				//var tat = tit.ToString();
+				//var titty = new JwtSecurityToken(tat);
+				//Response.End();
+
+				var workinglen = testAuth.Length;
+				var tittylen = titty.Length;
 				GoogleLoginButton.Visible = false;
 				LogoutButton.Visible = true;
 
 				var apiEndPoint = "https://pgorelease.nianticlabs.com/plfe/rpc";
-				var requestEnvelope = new RequestEnvelope()
+
+
+				var requestEnvelope = new RequestEnvelope
 				{
 					StatusCode = 2,
-					RequestId = 7309341774315520108,
+					RequestId = (ulong) new Random().Next(100000000, 999999999),
 					Latitude = 0,
 					Longitude = 0,
 					Altitude = 0,
 					Unknown12 = 123,
-					Requests = {
-						new Request
-						{
-							RequestType = RequestType.GetHatchedEggs
-						},
-						new Request
-						{
-							RequestType = RequestType.GetInventory,
-							RequestMessage = new GetInventoryMessage
-							{
-							   LastTimestampMs = new long()
-							}.ToByteString()
-						},
-						new Request
-						{
-							RequestType = RequestType.CheckAwardedBadges
-						},
-						new Request
-						{
-							RequestType = RequestType.DownloadSettings,
-							RequestMessage = new DownloadSettingsMessage
-							{
-								Hash = "4a2e9bc330dae60e7b74fc85b98868ab4700802e"
-							}.ToByteString()
-						}
-					}
-			};
+					Requests = { GetDefaultRequests() }
+				};
 				//requestEnvelope.Requests.Add(new Request() { RequestType = RequestType.GetPlayer });
 				//requestEnvelope.StatusCode = 2; // REQUEST ?
 				//requestEnvelope.RequestId = 7309341774315520108; // ???
@@ -70,7 +77,7 @@ namespace PokemonGoApi
 					Provider = "google",
 					Token = new RequestEnvelope.Types.AuthInfo.Types.JWT()
 					{
-						Contents = Session["accessToken"].ToString(),
+						Contents = Session["idToken"].ToString(),
 						Unknown2 = 59 // ???
 					}
 				};
@@ -136,19 +143,51 @@ namespace PokemonGoApi
 
 		protected void GoogleLoginButton_OnClick(object sender, EventArgs e)
 		{
-			var Googleurl = "https://accounts.google.com/o/oauth2/auth?response_type=code&redirect_uri=" + 
-				ConfigurationManager.AppSettings["GoogleRedirectUrl"] + 
-				"&scope=https://www.googleapis.com/auth/userinfo.email%20https://www.googleapis.com/auth/userinfo.profile&client_id=" + 
-				ConfigurationManager.AppSettings["GoogleClientId"];
+			var Googleurl = "https://accounts.google.com/o/oauth2/v2/auth?" +
+				"response_type=code" +
+				"&redirect_uri=" + ConfigurationManager.AppSettings["GoogleRedirectUrl"] + 
+				"&scope=https://www.googleapis.com/auth/userinfo.email%20https://www.googleapis.com/auth/userinfo.profile" +
+				"&client_id=" + ConfigurationManager.AppSettings["GoogleClientId"];
 			Session["loginWith"] = "google";
 			Response.Redirect(Googleurl);
 		}
 
 		protected void LogoutButton_OnClick(object sender, EventArgs e)
 		{
-			Session["accessToken"] = null;
+			Session["idToken"] = null;
 			Session["loginWith"] = null;
 			Response.Redirect("Default.aspx");
+		}
+
+		private IEnumerable<Request> GetDefaultRequests()
+		{
+			return new[]
+			{
+				new Request
+				{
+					RequestType = RequestType.GetHatchedEggs
+				},
+				new Request
+				{
+					RequestType = RequestType.GetInventory,
+					RequestMessage = new GetInventoryMessage
+					{
+					   LastTimestampMs = 0
+					}.ToByteString()
+				},
+				new Request
+				{
+					RequestType = RequestType.CheckAwardedBadges
+				},
+				new Request
+				{
+					RequestType = RequestType.DownloadSettings,
+					RequestMessage = new DownloadSettingsMessage
+					{
+						Hash = "4a2e9bc330dae60e7b74fc85b98868ab4700802e"
+					}.ToByteString()
+				}
+			};
 		}
 	}
 }

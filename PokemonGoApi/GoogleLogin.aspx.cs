@@ -20,7 +20,7 @@ namespace PokemonGoApi
 
 		protected void Page_Load(object sender, EventArgs e)
 		{
-			if (Session["accessToken"] != null)
+			if (Session["idToken"] != null)
 			{
 				Response.Redirect("Default.aspx");
 			}
@@ -38,7 +38,7 @@ namespace PokemonGoApi
 					if (code != null)
 					{
 						//get the access token 
-						HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("https://accounts.google.com/o/oauth2/token");
+						HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("https://www.googleapis.com/oauth2/v4/token");
 						webRequest.Method = "POST";
 						Parameters = "code=" + code + "&client_id=" + ConfigurationManager.AppSettings["GoogleClientId"] + 
 							"&client_secret=" + ConfigurationManager.AppSettings["GoogleClientSecret"] + 
@@ -60,9 +60,11 @@ namespace PokemonGoApi
 
 						if (serStatus != null)
 						{
-							if (!string.IsNullOrEmpty(serStatus.access_token))
+							if (!string.IsNullOrEmpty(serStatus.id_token))
 							{
+								Session["idToken"] = serStatus.id_token;
 								Session["accessToken"] = serStatus.access_token;
+								Session["GooglePlusAccessToken"] = serStatus;
 								Response.Redirect("Default.aspx");
 							}
 						}
@@ -73,7 +75,7 @@ namespace PokemonGoApi
 
 		protected void LogoutLinkButton_OnClick(object sender, EventArgs e)
 		{
-			Session["accessToken"] = null;
+			Session["idToken"] = null;
 			Session["loginWith"] = null;
 			Response.Redirect("Default.aspx");
 		}
