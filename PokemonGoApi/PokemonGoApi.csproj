@@ -137,6 +137,10 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Data\PGDB.mdf" />
+    <Content Include="App_Data\PGDB_log.ldf">
+      <DependentUpon>PGDB.mdf</DependentUpon>
+    </Content>
     <Content Include="Default.aspx" />
     <Content Include="favicon.ico" />
     <Content Include="packages.config" />
@@ -144,6 +148,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="App.config" />
+    <Content Include="SessionTest.aspx" />
     <Content Include="Source\ProtoFiles\helpers\__pycache__\compile_helper.cpython-34.pyc" />
     <Content Include="Source\ProtoFiles\helpers\__pycache__\__init__.cpython-34.pyc" />
     <Content Include="Source\ProtoFiles\README.md" />
@@ -413,7 +418,17 @@
       <DependentUpon>Default.aspx</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Source\GooglePlusAccessToken.cs" />
+    <Compile Include="SessionTest.aspx.cs">
+      <DependentUpon>SessionTest.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="SessionTest.aspx.designer.cs">
+      <DependentUpon>SessionTest.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Source\Constants.cs" />
+    <Compile Include="Source\DBPoke.cs" />
+    <Compile Include="Source\Helpers\RequestHelper.cs" />
+    <Compile Include="Source\Helpers\S2Helper.cs" />
     <Compile Include="Source\ProtoFiles\out\POGOProtosData.cs" />
     <Compile Include="Source\ProtoFiles\out\POGOProtosDataBattle.cs" />
     <Compile Include="Source\ProtoFiles\out\POGOProtosDataCapture.cs" />
@@ -476,6 +491,11 @@
     <Error Condition="!Exists('..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" Text="This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=317567." HelpKeyword="BCLBUILD2001" />
     <Error Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" Text="The build restored NuGet packages. Build the project again to include these packages in the build. For more information, see http://go.microsoft.com/fwlink/?LinkID=317568." HelpKeyword="BCLBUILD2002" />
   </Target>
+  <Import Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="'$(SQLDBExtensionsRefPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="'$(SQLDBExtensionsRefPath)' == ''" />
+  <PropertyGroup>
+    <SsdtUnitTestVersion>2.0</SsdtUnitTestVersion>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -24,7 +24,7 @@
         <div>
             <asp:Label ID="UserLabel" runat="server" /><br />
             <asp:Label ID="LocationLabel" runat="server" /><br />
-            <asp:Label ID="FoundPokesLabel" runat="server" />
+            <asp:GridView ID="FoundPokesGridView" runat="server" />
         </div>
     </form>
 </body>

@@ -85,12 +85,12 @@ namespace PokemonGoApi {
         protected global::System.Web.UI.WebControls.Label LocationLabel;
         
         /// <summary>
-        /// FoundPokesLabel control.
+        /// FoundPokesGridView control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label FoundPokesLabel;
+        protected global::System.Web.UI.WebControls.GridView FoundPokesGridView;
     }
 }

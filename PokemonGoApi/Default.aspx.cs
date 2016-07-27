@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
+using System.Data;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -29,27 +30,65 @@ namespace PokemonGoApi
 		private string m_googleAuthToken = String.Empty;
 		private string m_apiEndPoint = "https://pgorelease.nianticlabs.com/plfe/rpc";
 		private GetPlayerResponse m_player;
+		double starting_lat;
+		double starting_lng;
 		double m_lat = 0;
 		double m_lng = 0;
 		List<string> seen_pokes = new List<string>();
 		List<ulong> explored_cells = new List<ulong>();
+		DataTable pokes_table = new DataTable();
 
 		protected void Page_Load(object sender, EventArgs e)
 		{
 			seen_pokes.Clear();
 			explored_cells.Clear();
+			pokes_table.Columns.Add("Pokemon");
+			pokes_table.Columns.Add("Location");
+			pokes_table.Columns.Add("Distance");
+			pokes_table.Columns.Add("Expire Time");
+
+			Session["test"] = new List<string>();
+
+			//if (Response.Cookies["authCookie"] != null && Response.Cookies["gAuthCookie"].Expires > DateTime.Now.ToUniversalTime())
+			//{
+			//	m_googleAuthToken = Response.Cookies["gAuthCookie"].Value;
+			//}
+
+			if (!String.IsNullOrEmpty(m_googleAuthToken))
+			{
+				GoogleLoginButton.Visible = false;
+				LogoutButton.Visible = true;
+
+				SendInitialRequest();
+			}
 		}
 
-		protected void GoogleLoginButton_OnClick(object sender, EventArgs e)
+		protected void Login(string user, string pass)
 		{
-			var googleClient = new GPSOAuthClient(GoogleUserTextBox.Text, GooglePassTextBox.Text);
+			var googleClient = new GPSOAuthClient(user, pass);
 			var masterLoginResponse = googleClient.PerformMasterLogin();
 			var oauthResponse = googleClient.PerformOAuth(masterLoginResponse["Token"], "audience:server:client_id:848232511240-7so421jotr2609rmqakceuu1luuq0ptb.apps.googleusercontent.com", "com.nianticlabs.pokemongo", "321187995bc7cdc2b5fc91b11a96e2baa8602c62");
+			m_googleAuthToken = oauthResponse["Auth"];
+
+			//var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+			//HttpCookie authCookie = new HttpCookie("gAuthCookie");
+			//authCookie.Value = oauthResponse["Auth"];
+			//authCookie.Expires = epoch.AddSeconds(Convert.ToInt32(oauthResponse["Expiry"]));
+			//Response.Cookies.Add(authCookie);
 
 			GoogleLoginButton.Visible = false;
 			LogoutButton.Visible = true;
 
-			m_googleAuthToken = oauthResponse["Auth"];
+			SendInitialRequest();
+		}
+
+		protected void GoogleLoginButton_OnClick(object sender, EventArgs e)
+		{
+			Login(GoogleUserTextBox.Text, GooglePassTextBox.Text);
+		}
+
+		protected void SendInitialRequest()
+		{
 			m_apiEndPoint = GetApiEndPoint();
 			var playerResponseEnvelope = SendRequest(m_apiEndPoint, new Request { RequestType = RequestType.GetPlayer });
 			m_player = GetPlayerResponse.Parser.ParseFrom(playerResponseEnvelope.Returns[0]);
@@ -59,14 +98,16 @@ namespace PokemonGoApi
 			var locationXml = XDocument.Load(locationRequest.GetResponse().GetResponseStream());
 			var locationResult = locationXml.Element("GeocodeResponse").Element("result");
 			var locationString = locationResult.Element("formatted_address").Value;
-			m_lat = Convert.ToDouble(locationResult.Element("geometry").Element("location").Element("lat").Value);
-			m_lng = Convert.ToDouble(locationResult.Element("geometry").Element("location").Element("lng").Value);
+			starting_lat = Convert.ToDouble(locationResult.Element("geometry").Element("location").Element("lat").Value);
+			starting_lng = Convert.ToDouble(locationResult.Element("geometry").Element("location").Element("lng").Value);
+			m_lat = starting_lat;
+			m_lng = starting_lng;
 
 			LocationLabel.Text = String.Format("Staring at location: {0} <br /> Lat: {1}, Lng: {2}", locationString, m_lat.ToString(), m_lng.ToString());
 
 
-			var stepSize = 0.0025;
-			var numSteps = 4;
+			var stepSize = 0.00125;
+			var numSteps = 5;
 			var lat = m_lat;
 			var lng = m_lng;
 
@@ -77,7 +118,7 @@ namespace PokemonGoApi
 				{
 					m_lng = j;
 					SendRequest(m_apiEndPoint, new Request { RequestType = RequestType.GetPlayer });
-					var cellIds = GetCellIds(m_lat, m_lng);
+					var cellIds = S2Helper.GetCellIds(m_lat, m_lng);
 					var getMapObjectRequest = new Request
 					{
 						RequestType = RequestType.GetMapObjects,
@@ -93,9 +134,13 @@ namespace PokemonGoApi
 					var mapResponseEnvelope = SendRequest(m_apiEndPoint, getMapObjectRequest);
 					var mapResponse = GetMapObjectsResponse.Parser.ParseFrom(mapResponseEnvelope.Returns[0]);
 					CheckForPokemon(mapResponse);
-					Thread.Sleep(510);
+					//Thread.Sleep(510);
 				}
 			}
+
+			pokes_table.DefaultView.Sort = "Distance ASC";
+			FoundPokesGridView.DataSource = pokes_table;
+			FoundPokesGridView.DataBind();
 		}
 
 		protected void CheckForPokemon(GetMapObjectsResponse mapResponse)
@@ -109,12 +154,30 @@ namespace PokemonGoApi
 						if (!seen_pokes.Contains(poke.SpawnPointId))
 						{
 							System.Diagnostics.Debug.WriteLine("Found pokemon");
-
 							seen_pokes.Add(poke.SpawnPointId);
-							FoundPokesLabel.Text += String.Format("Found pokemon: {0}, coords: {1}, {2}, expires at {3}<br />", 
-								poke.PokemonData.PokemonId, 
-								poke.Latitude, poke.Longitude, 
-								DateTime.Now.AddMilliseconds(poke.TimeTillHiddenMs).ToLocalTime().ToLongTimeString());
+
+							DataRow poke_row = pokes_table.NewRow();
+							poke_row["Pokemon"] = poke.PokemonData.PokemonId;
+							poke_row["Location"] = String.Format("{0}, {1}", poke.Latitude, poke.Longitude);
+							poke_row["Distance"] = Math.Sqrt(Math.Pow(starting_lat - poke.Latitude, 2) + Math.Pow(starting_lng - poke.Longitude, 2));
+							poke_row["Expire Time"] = DateTime.Now.AddMilliseconds(poke.TimeTillHiddenMs).ToLocalTime().ToLongTimeString();
+							pokes_table.Rows.Add(poke_row);
+							var asd = (List<string>)Session["test"];
+							asd.Add(poke.PokemonData.PokemonId.ToString());
+							Session["test"] = asd;
+
+							DBPoke found_poke = new DBPoke()
+							{
+								EncounterId = poke.EncounterId,
+								LastModifiedTimeStampMs = poke.LastModifiedTimestampMs,
+								Latitude = poke.Latitude,
+								Longitude = poke.Longitude,
+								SpawnPointId = poke.SpawnPointId,
+								Name = poke.PokemonData.PokemonId.ToString(),
+								TimeTillHiddenMs = poke.TimeTillHiddenMs,
+								FoundTimeSeconds = Convert.ToInt32((DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds)
+						};
+							found_poke.Save();
 						}
 					}
 				}
@@ -126,30 +189,6 @@ namespace PokemonGoApi
 					}
 				}
 			}
-		}
-
-		protected ulong[] GetCellIds(double latitude, double longitude)
-		{
-			var latLong = S2LatLng.FromDegrees(latitude, longitude);
-			var cell = S2CellId.FromLatLng(latLong);
-			var cellId = cell.ParentForLevel(15);
-			var cells = cellId.GetEdgeNeighbors();
-			var cellIds = new List<ulong>
-			{
-				cellId.Id
-			};
-
-			foreach (var cellEdge1 in cells)
-			{
-				if (!cellIds.Contains(cellEdge1.Id)) cellIds.Add(cellEdge1.Id);
-
-				foreach (var cellEdge2 in cellEdge1.GetEdgeNeighbors())
-				{
-					if (!cellIds.Contains(cellEdge2.Id)) cellIds.Add(cellEdge2.Id);
-				}
-			}
-
-			return cellIds.ToArray();
 		}
 
 		protected string GetApiEndPoint()
@@ -168,7 +207,7 @@ namespace PokemonGoApi
 				Longitude = m_lng,
 				Altitude = 50,
 				Unknown12 = 123,
-				Requests = { GetDefaultRequests() }
+				Requests = { RequestHelper.GetDefaultRequests() }
 			};
 			requestEnvelope.AuthInfo = new RequestEnvelope.Types.AuthInfo()
 			{
@@ -205,35 +244,6 @@ namespace PokemonGoApi
 			Response.Redirect("Default.aspx");
 		}
 
-		private IEnumerable<Request> GetDefaultRequests()
-		{
-			return new[]
-			{
-				new Request
-				{
-					RequestType = RequestType.GetHatchedEggs
-				},
-				new Request
-				{
-					RequestType = RequestType.GetInventory,
-					RequestMessage = new GetInventoryMessage
-					{
-					   LastTimestampMs = 0
-					}.ToByteString()
-				},
-				new Request
-				{
-					RequestType = RequestType.CheckAwardedBadges
-				},
-				new Request
-				{
-					RequestType = RequestType.DownloadSettings,
-					RequestMessage = new DownloadSettingsMessage
-					{
-						Hash = "4a2e9bc330dae60e7b74fc85b98868ab4700802e"
-					}.ToByteString()
-				}
-			};
-		}
+		
 	}
 }
