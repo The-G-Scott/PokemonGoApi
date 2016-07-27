@@ -14,12 +14,11 @@ namespace PokemonGoApi.Source
 		public double Longitude { get; set; }
 		public string SpawnPointId { get; set; }
 		public string Name { get; set; }
-		public int TimeTillHiddenMs { get; set; }
-		public int FoundTimeSeconds { get; set; }
+		public DateTime ExpireTime { get; set; }
 
 		public DBPoke() { }
 
-		public DBPoke(ulong encounterId, long lastModifiedTimeStampMs, double latitude, double longitude, string spawnPointId, string name, int timeTillHiddenMs, int foundTimeSeconds)
+		public DBPoke(ulong encounterId, long lastModifiedTimeStampMs, double latitude, double longitude, string spawnPointId, string name, DateTime expireTime)
 		{
 			EncounterId = encounterId;
 			LastModifiedTimeStampMs = lastModifiedTimeStampMs;
@@ -27,8 +26,7 @@ namespace PokemonGoApi.Source
 			Longitude = longitude;
 			SpawnPointId = spawnPointId;
 			Name = name;
-			TimeTillHiddenMs = timeTillHiddenMs;
-			FoundTimeSeconds = FoundTimeSeconds;
+			ExpireTime = expireTime;
 		}
 
 		public static List<DBPoke> GetAllDBPokes()
@@ -50,14 +48,32 @@ namespace PokemonGoApi.Source
 						Longitude = Convert.ToDouble(reader["longitude"]),
 						SpawnPointId = reader["spawnPointId"].ToString(),
 						Name = reader["name"].ToString(),
-						TimeTillHiddenMs = Convert.ToInt32(reader["timeTillHiddenMs"]),
-						FoundTimeSeconds = Convert.ToInt32(reader["foundTimeSeconds"])
+						ExpireTime = Convert.ToDateTime(reader["expireTime"])
 					};
 					dbPokes.Add(found_poke);
 				}
 				dbConnection.Close();
 			}
 			return dbPokes;
+		}
+
+		public void Delete()
+		{
+			using (var dbConnection = new SqlConnection(Constants.ConnectionString))
+			{
+				dbConnection.Open();
+				var sql = @"DELETE FROM found_pokemon 
+							WHERE encounterId = @encounterId
+							AND spawnPointId = @spawnPointId";
+				var cmd = new SqlCommand(sql, dbConnection);
+				cmd.Parameters.AddWithValue("@encounterId", EncounterId.ToString());
+				cmd.Parameters.AddWithValue("@spawnPointId", SpawnPointId);
+
+				if (cmd.ExecuteNonQuery() > 0)
+				{
+					System.Diagnostics.Debug.WriteLine(String.Format("Deleted stale pokemon {0}", Name));
+				}
+			}
 		}
 
 		public void Save()
@@ -71,16 +87,14 @@ namespace PokemonGoApi.Source
 													  longitude,
 													  spawnPointId,
 													  name,
-													  timeTillHiddenMs,
-													  foundTimeSeconds)
+													  expireTime)
 											   VALUES(@encounterId,
 													  @lastModifiedTimeStampMs,
 													  @latitude,
 													  @longitude,
 													  @spawnPointId,
 													  @name,
-													  @timeTillHiddenMs,
-													  @foundTimeSeconds)";
+													  @expireTime)";
 				var cmd = new SqlCommand(sql, dbConnection);
 				cmd.Parameters.AddWithValue("@encounterId", EncounterId.ToString());
 				cmd.Parameters.AddWithValue("@lastModifiedTimeStampMs", LastModifiedTimeStampMs);
@@ -88,8 +102,7 @@ namespace PokemonGoApi.Source
 				cmd.Parameters.AddWithValue("@longitude", Longitude);
 				cmd.Parameters.AddWithValue("@spawnPointId", SpawnPointId);
 				cmd.Parameters.AddWithValue("@name", Name);
-				cmd.Parameters.AddWithValue("@timeTillHiddenMs", TimeTillHiddenMs);
-				cmd.Parameters.AddWithValue("@foundTimeSeconds", FoundTimeSeconds);
+				cmd.Parameters.AddWithValue("@expireTime", ExpireTime);
 
 				if (cmd.ExecuteNonQuery() > 0)
 				{

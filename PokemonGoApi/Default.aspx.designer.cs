@@ -58,15 +58,6 @@ namespace PokemonGoApi {
         protected global::System.Web.UI.WebControls.Button GoogleLoginButton;
         
         /// <summary>
-        /// LogoutButton control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button LogoutButton;
-        
-        /// <summary>
         /// UserLabel control.
         /// </summary>
         /// <remarks>
@@ -85,12 +76,21 @@ namespace PokemonGoApi {
         protected global::System.Web.UI.WebControls.Label LocationLabel;
         
         /// <summary>
-        /// FoundPokesGridView control.
+        /// StartedLabel control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.GridView FoundPokesGridView;
+        protected global::System.Web.UI.WebControls.Label StartedLabel;
+        
+        /// <summary>
+        /// ResultsIFrame control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.HtmlControls.HtmlIframe ResultsIFrame;
     }
 }

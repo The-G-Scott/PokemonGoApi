@@ -17,14 +17,14 @@
                 <tr><td>Location:</td><td><asp:TextBox ID="LocationTextBox" runat="server" /></td></tr>
                 <tr><td colspan="2">
                     <asp:Button ID="GoogleLoginButton" Text="Google Login" OnClick="GoogleLoginButton_OnClick" runat="server" />
-                    <asp:Button ID="LogoutButton" Text="Log Out" OnClick="LogoutButton_OnClick" runat="server" Visible="false" />
                 </td></tr>
             </table>
-        </div>
-        <div>
-            <asp:Label ID="UserLabel" runat="server" /><br />
-            <asp:Label ID="LocationLabel" runat="server" /><br />
-            <asp:GridView ID="FoundPokesGridView" runat="server" />
+
+            <asp:Label ID="UserLabel" runat="server" /><br /><br />
+            <asp:Label ID="LocationLabel" runat="server" /><br /><br />
+            <asp:Label ID="StartedLabel" runat="server" /><br /><br />
+
+            <iframe id="ResultsIFrame" src="SessionTest.aspx" runat="server" visible="false" />
         </div>
     </form>
 </body>

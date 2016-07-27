@@ -9,7 +9,8 @@
 <body>
     <form id="form1" runat="server">
     <div>
-        <asp:Label ID="SessionTestLabel" runat="server" />
+        <a href="SessionTest.aspx">Refresh</a><br />
+        <asp:GridView ID="FoundPokesGridView" runat="server" />
     </div>
     </form>
 </body>

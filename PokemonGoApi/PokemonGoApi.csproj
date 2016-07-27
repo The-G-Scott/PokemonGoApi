@@ -429,6 +429,8 @@
     <Compile Include="Source\DBPoke.cs" />
     <Compile Include="Source\Helpers\RequestHelper.cs" />
     <Compile Include="Source\Helpers\S2Helper.cs" />
+    <Compile Include="Source\InitialResponse.cs" />
+    <Compile Include="Source\MainLoop.cs" />
     <Compile Include="Source\ProtoFiles\out\POGOProtosData.cs" />
     <Compile Include="Source\ProtoFiles\out\POGOProtosDataBattle.cs" />
     <Compile Include="Source\ProtoFiles\out\POGOProtosDataCapture.cs" />
