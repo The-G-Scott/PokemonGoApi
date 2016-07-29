@@ -27,9 +27,13 @@ namespace PokemonGoApi.Source
 		double m_lng = 0;
 		List<string> seen_pokes = new List<string>();
 		List<ulong> explored_cells = new List<ulong>();
+		private string m_user = String.Empty;
+		private string m_pass = String.Empty;
 
 		public void Login(string user, string pass, string location)
 		{
+			m_user = user;
+			m_pass = pass;
 			m_location = location;
 			var googleClient = new GPSOAuthClient(user, pass);
 			var masterLoginResponse = googleClient.PerformMasterLogin();
@@ -63,8 +67,10 @@ namespace PokemonGoApi.Source
 
 		public void BeginRequests()
 		{
+			int count = 0;
 			while (true)
 			{
+				count++;
 				var stepSize = 0.00125;
 				var numSteps = 5;
 				var lat = m_lat;
@@ -90,15 +96,29 @@ namespace PokemonGoApi.Source
 							}.ToByteString()
 						};
 
-						var mapResponseEnvelope = SendRequest(m_apiEndPoint, getMapObjectRequest);
-						var mapResponse = GetMapObjectsResponse.Parser.ParseFrom(mapResponseEnvelope.Returns[0]);
-						CheckForPokemon(mapResponse);
+						try
+						{
+							var mapResponseEnvelope = SendRequest(m_apiEndPoint, getMapObjectRequest);
+							var mapResponse = GetMapObjectsResponse.Parser.ParseFrom(mapResponseEnvelope.Returns[0]);
+							CheckForPokemon(mapResponse);
+						}
+						catch (Exception e)
+						{
+							System.Diagnostics.Debug.WriteLine("Exception in BeginRequests(): " + e.Message);
+						}
 					}
 				}
-				System.Diagnostics.Debug.WriteLine("Got map objects. Sleeping for one minute");
+				System.Diagnostics.Debug.WriteLine("Got map objects. Resetting coords and sleeping for one minute");
+				m_lat = starting_lat;
+				m_lng = starting_lng;
+
 				Thread.Sleep(60000);
+				if (count % 5 == 0)
+				{
+					// Restart everything every 5 minutes
+					Thread.CurrentThread.Abort();
+				}
 			}
-			System.Diagnostics.Debug.WriteLine("BeginRequests parent died, stopping.");
 		}
 
 		protected void CheckForPokemon(GetMapObjectsResponse mapResponse)
@@ -167,21 +187,30 @@ namespace PokemonGoApi.Source
 			};
 
 			requestEnvelope.Requests.Insert(0, request);
-			using (var memoryStream = new System.IO.MemoryStream())
-			{
-				requestEnvelope.WriteTo(memoryStream);
-				var httpClient = new HttpClient();
-				httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd("Niantic App");
-				httpClient.DefaultRequestHeaders.ExpectContinue = false;
-				using (var response = httpClient.PostAsync(apiUrl, new ByteArrayContent(memoryStream.ToArray())).Result)
-				{
-					var responseBytes = response.Content.ReadAsByteArrayAsync().Result;
-					var responseEnvelope = ResponseEnvelope.Parser.ParseFrom(responseBytes);
-					System.Diagnostics.Debug.WriteLine("Received" + responseBytes.Length + "bytes.");
 
-					return responseEnvelope;
+			try
+			{
+				using (var memoryStream = new System.IO.MemoryStream())
+				{
+					requestEnvelope.WriteTo(memoryStream);
+					var httpClient = new HttpClient();
+					httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd("Niantic App");
+					httpClient.DefaultRequestHeaders.ExpectContinue = false;
+					using (var response = httpClient.PostAsync(apiUrl, new ByteArrayContent(memoryStream.ToArray())).Result)
+					{
+						var responseBytes = response.Content.ReadAsByteArrayAsync().Result;
+						var responseEnvelope = ResponseEnvelope.Parser.ParseFrom(responseBytes);
+						System.Diagnostics.Debug.WriteLine("Received" + responseBytes.Length + "bytes.");
+
+						return responseEnvelope;
+					}
 				}
 			}
+			catch (Exception e)
+			{
+				System.Diagnostics.Debug.WriteLine("Exception in SendRequest(): " + e.Message);
+			}
+			return new ResponseEnvelope();
 		}
 
 		public void BeginClearStalePokes()
@@ -193,12 +222,12 @@ namespace PokemonGoApi.Source
 					if (dbPoke.ExpireTime < DateTime.UtcNow)
 					{
 						dbPoke.Delete();
+						seen_pokes.RemoveAll(spId => spId == dbPoke.SpawnPointId);
 					}
 				}
 				System.Diagnostics.Debug.WriteLine("Cleared stale pokes. Waiting one minute.");
 				Thread.Sleep(60000);
 			}
-			System.Diagnostics.Debug.WriteLine("BeginClearStalePokes parent died, stopping.");
 		}
 	}
 }

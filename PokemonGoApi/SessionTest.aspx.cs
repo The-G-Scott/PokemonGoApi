@@ -41,5 +41,16 @@ namespace PokemonGoApi
 			FoundPokesGridView.DataSource = pokes_table;
 			FoundPokesGridView.DataBind();
 		}
+
+		protected void FoundPokesGridView_RowDataBound(object sender, GridViewRowEventArgs e)
+		{
+			if (e.Row.RowType == DataControlRowType.DataRow)
+			{
+				if (Convert.ToDouble(e.Row.Cells[2].Text) < .0004)
+				{
+					e.Row.Style.Add("background-color", "#6666ff");
+				}
+			}
+		}
 	}
 }
