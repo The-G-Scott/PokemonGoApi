@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
-namespace PokemonGoApi.Source
+﻿namespace PokemonGoApi.Source
 {
 	public class InitialResponse
 	{

@@ -11,7 +11,19 @@
     <form id="form1" runat="server">
     <div>
         <a href="SessionTest.aspx">Refresh</a><br />
-        <asp:GridView ID="FoundPokesGridView" OnRowDataBound="FoundPokesGridView_RowDataBound" runat="server" />
+        <table>
+            <tr style="text-align: center; font-weight:bolder;"><td>Pokemon</td><td></td><td>Pokestops/Gyms</td><td></td><td>Notify Me For</td></tr>
+            <tr>
+                <td style="vertical-align: top;"><asp:GridView ID="FoundPokesGridView" OnRowDataBound="FoundPokesGridView_RowDataBound" runat="server" /></td>
+                <td style="width: 50px;"></td>
+                <td style="vertical-align: top;"><asp:GridView ID="FoundFortsGridView" runat="server" /></td>
+                <td style="width: 50px;"></td>
+                <td style="vertical-align: top;">
+                    <asp:CheckBoxList ID="NotifyPokesCheckList" runat="server" /><br />
+                    <asp:Button ID="SaveNotifyPokesButton" Text="Save Notify Preferences" OnClick="SaveNotifyPokesButton_Click" runat="server" />
+                </td>
+            </tr>
+        </table>
     </div>
     </form>
 </body>

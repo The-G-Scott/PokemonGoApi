@@ -29,5 +29,32 @@ namespace PokemonGoApi {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.GridView FoundPokesGridView;
+        
+        /// <summary>
+        /// FoundFortsGridView control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.GridView FoundFortsGridView;
+        
+        /// <summary>
+        /// NotifyPokesCheckList control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.CheckBoxList NotifyPokesCheckList;
+        
+        /// <summary>
+        /// SaveNotifyPokesButton control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button SaveNotifyPokesButton;
     }
 }

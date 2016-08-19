@@ -22,22 +22,13 @@ namespace PokemonGoApi {
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
         
         /// <summary>
-        /// GoogleUserTextBox control.
+        /// LocationTitleLabel control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox GoogleUserTextBox;
-        
-        /// <summary>
-        /// GooglePassTextBox control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox GooglePassTextBox;
+        protected global::System.Web.UI.WebControls.Label LocationTitleLabel;
         
         /// <summary>
         /// LocationTextBox control.
@@ -49,13 +40,31 @@ namespace PokemonGoApi {
         protected global::System.Web.UI.WebControls.TextBox LocationTextBox;
         
         /// <summary>
-        /// GoogleLoginButton control.
+        /// StepCountLabel control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button GoogleLoginButton;
+        protected global::System.Web.UI.WebControls.Label StepCountLabel;
+        
+        /// <summary>
+        /// StepCountTextBox control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox StepCountTextBox;
+        
+        /// <summary>
+        /// StartButton control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button StartButton;
         
         /// <summary>
         /// UserLabel control.
@@ -74,15 +83,6 @@ namespace PokemonGoApi {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Label LocationLabel;
-        
-        /// <summary>
-        /// StartedLabel control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label StartedLabel;
         
         /// <summary>
         /// ResultsIFrame control.

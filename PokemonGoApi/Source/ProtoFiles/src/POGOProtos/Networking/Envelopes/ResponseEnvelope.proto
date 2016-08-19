@@ -9,15 +9,9 @@ message ResponseEnvelope {
 	uint64 request_id = 2;
 	string api_url = 3;
 
-	.POGOProtos.Networking.Envelopes.Unknown6Response unknown6 = 6;
+	repeated .POGOProtos.Networking.Envelopes.Unknown6Response unknown6 = 6;
 	.POGOProtos.Networking.Envelopes.AuthTicket auth_ticket = 7;
 
 	repeated bytes returns = 100;
 	string error = 101;
-
-	message Unknown7 {
-		bytes unknown71 = 1;
-		int64 unknown72 = 2;
-		bytes unknown73 = 3;
-	}
 }

@@ -7,7 +7,7 @@ namespace PokemonGoApi.Source
 {
 	public class RequestHelper
 	{
-		public static IEnumerable<Request> GetDefaultRequests()
+		public static IEnumerable<Request> GetDefaultRequests(string settingsHash)
 		{
 			return new[]
 			{
@@ -27,12 +27,19 @@ namespace PokemonGoApi.Source
 				{
 					RequestType = RequestType.CheckAwardedBadges
 				},
+
+				string.IsNullOrEmpty(settingsHash) ?
+				new Request
+				{
+					RequestType = RequestType.DownloadSettings
+				}
+				:
 				new Request
 				{
 					RequestType = RequestType.DownloadSettings,
 					RequestMessage = new DownloadSettingsMessage
 					{
-						Hash = "4a2e9bc330dae60e7b74fc85b98868ab4700802e"
+						Hash = settingsHash
 					}.ToByteString()
 				}
 			};
